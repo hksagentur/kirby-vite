@@ -20,7 +20,10 @@
     "getkirby/composer-installer": "^1.1"
   },
   "config": {
-    "optimize-autoloader": true
+    "optimize-autoloader": true,
+    "allow-plugins": {
+      "getkirby/composer-installer": true
+    }
   },
   "extra": {
     "installer-name": "vite"

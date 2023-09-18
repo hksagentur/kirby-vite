@@ -229,7 +229,8 @@ class Vite
     {
         if ($this->shouldUseManifest()) {
             $elements = $this->generator()->generateTagsForManifest(
-                manifest: $this->manifest()
+                manifest: $this->manifest(),
+                entryPoints: $this->entryPoints
             );
         } else {
             $elements = $this->generator()->generateTagsForViteClient(

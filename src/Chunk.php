@@ -32,10 +32,6 @@ class Chunk
      */
     public function __construct(Manifest $manifest, array $data)
     {
-        if (empty($data['src'])) {
-            throw new Exception('The chunk is missing a valid source path.');
-        }
-
         if (empty($data['file'])) {
             throw new Exception('The chunk is missing a valid output path.');
         }
@@ -150,11 +146,17 @@ class Chunk
     /**
      * Get the absolute path to the source file.
      *
-     * @return string
+     * @return string|null
      */
-    public function source(): string
+    public function source(): ?string
     {
-        return App::instance()->roots()->base() . '/' . Str::ltrim($this->get('src'), '/');
+        $path = $this->get('src');
+
+        if (!$path) {
+            return null;
+        }
+
+        return App::instance()->roots()->base() . '/' . Str::ltrim($path, '/');
     }
 
     /**

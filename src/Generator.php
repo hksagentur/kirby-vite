@@ -87,11 +87,18 @@ class Generator
      * Generate the HTML tags for the given manifest.
      *
      * @param \Hks\Vite\Manifest $manifest The manifest to generate the tags for.
+     * @param string[] $entryPoints Limit the collection of entry points to to include.
      * @return string[]
      */
-    public function generateTagsForManifest(Manifest $manifest): array
+    public function generateTagsForManifest(Manifest $manifest, array $entryPoints = []): array
     {
-        return $manifest->entries()->flatMap(fn (Chunk $chunk) => [
+        $chunks = $manifest->entries();
+
+        if (! empty($entryPoints)) {
+            $chunks = $chunks->filter(fn (Chunk $chunk) => in_array($chunk->get('src'), $entryPoints));
+        }
+
+        return $chunks->flatMap(fn (Chunk $chunk) => [
             ...$this->generatePreloadTagsForChunk($chunk),
             ...$this->generateTagsForChunk($chunk),
         ])->toArray();
