@@ -117,7 +117,7 @@ class Generator
                 $this->generateStyleTagForChunk($chunk),
             ],
             default => [
-                ...$chunk->styles()->flatMap($this->generateStyleTagForChunk(...))->toArray(),
+                ...$chunk->styles()->map($this->generateStyleTagForChunk(...)),
                 $this->generateScriptTagForChunk($chunk),
             ],
         };
@@ -142,8 +142,8 @@ class Generator
                 ]),
             ],
             default => [
-                ...$chunk->styles()->flatMap($this->generatePreloadTagsForChunk(...))->toArray(),
-                ...$chunk->imports()->flatMap($this->generatePreloadTagsForChunk(...))->toArray(),
+                ...$chunk->styles()->flatMap($this->generatePreloadTagsForChunk(...)),
+                ...$chunk->imports()->flatMap($this->generatePreloadTagsForChunk(...)),
                 Html::tag('link', attr: [
                     'rel' => 'modulepreload',
                     'href' => $chunk->url(),
