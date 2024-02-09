@@ -5,6 +5,7 @@ namespace Hks\Vite;
 use Kirby\Cms\Html;
 use Kirby\Filesystem\F;
 use Kirby\Toolkit\Str;
+use Kirby\Http\Url;
 
 class Generator
 {
@@ -70,10 +71,10 @@ class Generator
 
         foreach (array_merge(['@vite/client'], $entryPoints) as $file) {
             $elements[] = match (F::extension($file)) {
-                'css' => Html::css("http://{$host}:{$port}/{$file}", [
+                'css' => Html::css(Url::scheme() . "://{$host}:{$port}/{$file}", [
                     'nonce' => $this->nonce,
                 ]),
-                default => Html::js("http://{$host}:{$port}/{$file}", [
+                default => Html::js(Url::scheme() . "://{$host}:{$port}/{$file}", [
                     'type' => 'module',
                     'nonce' => $this->nonce,
                 ]),

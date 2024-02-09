@@ -235,8 +235,8 @@ class Vite
         } else {
             $elements = $this->generator()->generateTagsForViteClient(
                 entryPoints: $this->entryPoints,
-                host: $this->option('server.host', 'localhost'),
-                port: $this->option('server.port', 5173)
+                host: $this->option('client.host', 'localhost'),
+                port: $this->option('client.port', 5173)
             );
         }
 
