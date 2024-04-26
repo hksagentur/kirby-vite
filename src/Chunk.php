@@ -110,7 +110,7 @@ class Chunk
      */
     public function path(): string
     {
-        return $this->manifest->dirname() . '/' . $this->id();
+        return $this->manifest->base() . '/' . $this->id();
     }
 
     /**

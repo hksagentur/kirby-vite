@@ -47,7 +47,7 @@ class Vite
      *
      * @var string|null
      */
-    protected ?string $manifest = 'manifest.json';
+    protected ?string $manifest = '.vite/manifest.json';
 
     /**
      * A collection of entry points.
@@ -173,13 +173,16 @@ class Vite
      */
     public function manifest(): Manifest
     {
-        $file = App::instance()->root() . '/' . $this->buildDirectory . '/' . $this->manifest;
+        $key = $this->buildDirectory . '/' . $this->manifest;
 
-        if (! isset(static::$manifests[$file])) {
-            static::$manifests[$file] = new Manifest($file);
+        if (! isset(static::$manifests[$key])) {
+            static::$manifests[$key] = new Manifest(
+                file: $this->manifest,
+                buildDirectory: $this->buildDirectory
+            );
         }
 
-        return static::$manifests[$file];
+        return static::$manifests[$key];
     }
 
     /**

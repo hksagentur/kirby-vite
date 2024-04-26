@@ -14,11 +14,18 @@ use Kirby\Toolkit\Str;
 class Manifest implements Countable, IteratorAggregate
 {
     /**
-     * The absolute path to the manifest file
+     * The relative path to the manifest file
      *
      * @var string
      */
-    protected string $path;
+    protected string $file;
+
+    /**
+     * The relative path to the build directory.
+     *
+     * @var string
+     */
+    protected string $buildDirectory;
 
     /**
      * The data of the asset manifest.
@@ -30,11 +37,13 @@ class Manifest implements Countable, IteratorAggregate
     /**
      * Create a new instance of the Manifest class.
      *
-     * @param array $data The data of the asset manifest.
+     * @param string $file The path to the manifest file.
+     * @param string $buildDirectory The path to the build directory.
      */
-    public function __construct(string $file)
+    public function __construct(string $file, string $buildDirectory)
     {
-        $this->path = $file;
+        $this->file = $file;
+        $this->buildDirectory = $buildDirectory;
     }
 
     /**
@@ -68,13 +77,23 @@ class Manifest implements Countable, IteratorAggregate
     }
 
     /**
+     * Get the absolute path to the build directory.
+     *
+     * @return string
+     */
+    public function base(): string
+    {
+        return App::instance()->roots()->index() . '/' . $this->buildDirectory;
+    }
+
+    /**
      * Get the absolute path of the manifest file.
      *
      * @return string
      */
     public function path(): string
     {
-        return $this->path;
+        return $this->base() . '/' . $this->file;
     }
 
     /**
