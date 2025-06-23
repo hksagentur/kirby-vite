@@ -96,7 +96,7 @@ class Generator
         $chunks = $manifest->entries();
 
         if (! empty($entryPoints)) {
-            $chunks = $chunks->filter(fn (Chunk $chunk) => in_array($chunk->get('src'), $entryPoints));
+            $chunks = $chunks->filter('id', 'in', $entryPoints);
         }
 
         return $chunks->flatMap(fn (Chunk $chunk) => [

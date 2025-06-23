@@ -8,12 +8,13 @@ class ChunkFactory
      * Create a new chunk.
      *
      * @param \Hks\Vite\Manifest $manifest The manifest the chunk belongs to.
+     * @param string
      * @param array $data The raw chunk data.
      * @return \Hks\Vite\Chunk
      */
-    public static function create(Manifest $manifest, array $data): Chunk
+    public static function create(Manifest $manifest, string $file, array $data): Chunk
     {
-        return new Chunk($manifest, $data);
+        return new Chunk($manifest, $file, $data);
     }
 
     /**
@@ -26,7 +27,7 @@ class ChunkFactory
     public static function collection(Manifest $manifest, array $chunks = []): ChunkCollection
     {
         return (new ChunkCollection($chunks))->map(
-            fn (array $data) => static::create($manifest, $data)
+            fn (array $data, string $id) => static::create($manifest, $id, $data)
         );
     }
 }

@@ -18,6 +18,13 @@ class Chunk
     protected Manifest $manifest;
 
     /**
+     * The input file.
+     *
+     * @var string
+     */
+    protected string $id;
+
+    /**
      * The chunk data.
      *
      * @var array
@@ -28,15 +35,17 @@ class Chunk
      * Create a new instance of the Chunk class.
      *
      * @param \Hks\Vite\Manifest $manifest The manifest the chunk belongs to.
+     * @param string $id The name of the input file.
      * @param array $data The data source of the chunk.
      */
-    public function __construct(Manifest $manifest, array $data)
+    public function __construct(Manifest $manifest, string $id, array $data)
     {
         if (empty($data['file'])) {
             throw new Exception('The chunk is missing a valid output path.');
         }
 
         $this->manifest = $manifest;
+        $this->id = $id;
         $this->data = $data;
     }
 
@@ -84,16 +93,6 @@ class Chunk
     }
 
     /**
-     * Get the identifier of the chunk.
-     *
-     * @return string
-     */
-    public function id(): string
-    {
-        return Str::ltrim($this->get('file'), '/');
-    }
-
-    /**
      * Get the type of the chunk.
      *
      * @return \Hks\Vite\ChunkType
@@ -104,13 +103,33 @@ class Chunk
     }
 
     /**
+     * Get the identifier of the chunk.
+     *
+     * @return string
+     */
+    public function id(): string
+    {
+        return $this->id;
+    }
+
+    /**
+     * Get the name of output file.
+     *
+     * @return string
+     */
+    public function file(): string
+    {
+        return $this->get('file');
+    }
+
+    /**
      * Get the path to the output file.
      *
      * @return string
      */
     public function path(): string
     {
-        return $this->manifest->base() . '/' . $this->id();
+        return $this->manifest->base() . '/' . $this->file();
     }
 
     /**
@@ -265,10 +284,7 @@ class Chunk
      */
     protected function find(string $file): ?Chunk
     {
-        return $this->manifest
-            ->chunks()
-            ->filter('filename', '==', $file)
-            ->first();
+        return $this->manifest->chunks()->find('id', '==', $file);
     }
 
     /**
@@ -279,9 +295,7 @@ class Chunk
      */
     protected function findMany(array $files): ChunkCollection
     {
-        return $this->manifest
-            ->chunks()
-            ->filter('filename', 'in', $files);
+        return $this->manifest->chunks()->filter('id', 'in', $files);
     }
 
 }

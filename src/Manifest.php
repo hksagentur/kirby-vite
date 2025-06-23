@@ -175,12 +175,12 @@ class Manifest implements Countable, IteratorAggregate
     /**
      * Find a chunk for a given source file.
      *
-     * @param string $file
+     * @param string $id
      * @return \Hks\Vite\Chunk|null
      */
-    public function chunk(string $file): ?Chunk
+    public function chunk(string $id): ?Chunk
     {
-        return $this->chunks()->findBy('id', Str::ltrim($file, '/'));
+        return $this->chunks()->findBy('id', Str::ltrim($id, '/'));
     }
 
     /**
@@ -196,12 +196,12 @@ class Manifest implements Countable, IteratorAggregate
     /**
      * Find a chunk for a given entry file.
      *
-     * @param string $file
+     * @param string $id
      * @return \Hks\Vite\Chunk|null
      */
-    public function entry(string $file): ?Chunk
+    public function entry(string $id): ?Chunk
     {
-        return $this->entries()->findBy('id', Str::ltrim($file, '/'));
+        return $this->entries()->findBy('id', Str::ltrim($id, '/'));
     }
 
     /**
