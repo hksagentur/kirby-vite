@@ -138,6 +138,7 @@ class Generator
                     'rel' => 'preload',
                     'as' => 'style',
                     'href' => $chunk->url(),
+                    'integrity' => $chunk->get('integrity'),
                     'nonce' => $this->nonce,
                     'crossorigin' => $this->crossorigin,
                 ]),
@@ -148,6 +149,7 @@ class Generator
                 Html::tag('link', attr: [
                     'rel' => 'modulepreload',
                     'href' => $chunk->url(),
+                    'integrity' => $chunk->get('integrity'),
                     'nonce' => $this->nonce,
                     'crossorigin' => $this->crossorigin,
                 ]),
