@@ -44,11 +44,12 @@ class ChunkCollection extends Collection
      * Join all items from the collection using a string.
      *
      * @param string|null $glue The string to use as glue.
+     * @param Closure|null $as A transform function.
      * @return string
      */
-    public function join(?string $glue = null): string
+    public function join(?string $glue = null, ?Closure $as = null): string
     {
-        return $this->implode($glue);
+        return $this->implode($as, $glue);
     }
 
     /**
