@@ -18,14 +18,10 @@ const remove = (file) => {
 
 export default defineConfig(({ command, mode }) => {
   const {
-    APP_URL = 'http://localhost'
-  } = process.env;
-
-  const {
     VITE_HOST = '0.0.0.0',
     VITE_PORT = 5173
     VITE_ORIGIN = `http://${VITE_HOST}:${VITE_PORT}`,
-  } = loadEnv(mode, process.cwd());
+  } = loadEnv(mode, process.cwd(), ['VITE_']);
 
   switch (command) {
     case 'serve':
