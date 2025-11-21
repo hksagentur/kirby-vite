@@ -24,6 +24,7 @@ export default defineConfig(({ command, mode }) => {
   const {
     VITE_HOST = '0.0.0.0',
     VITE_PORT = 5173
+    VITE_ORIGIN = `http://${VITE_HOST}:${VITE_PORT}`,
   } = loadEnv(mode, process.cwd());
 
   switch (command) {
@@ -38,7 +39,8 @@ export default defineConfig(({ command, mode }) => {
   }
 
   return {
-    base: mode === 'development' ? '/' : '/assets/build',
+    appType: 'mpa',
+    base: command === 'build' ? '/assets/build' : '/',
     publicDir: false,
     resolve: {
       alias: {
@@ -47,6 +49,7 @@ export default defineConfig(({ command, mode }) => {
     },
     build: {
       outDir: path.resolve(__dirname, 'assets/build'),
+      emptyOutDir: true,
       sourcemap: true,
       manifest: true,
       rollupOptions: {
@@ -64,8 +67,10 @@ export default defineConfig(({ command, mode }) => {
     server: {
       host: VITE_HOST,
       port: VITE_PORT,
-      origin: APP_URL,
-      strictPort: true
+      origin: VITE_ORIGIN,
+      cors: {
+        origin: /https?:\/\/([A-Za-z0-9\-\.]+)?(\.ddev\.site|\.localhost)(?::\d+)?$/,
+      },
     }
   };
 });
