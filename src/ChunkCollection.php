@@ -6,48 +6,12 @@ use ArgumentCountError;
 use Closure;
 use Kirby\Toolkit\Collection;
 
+/** @extends Collection<Chunk> */
 class ChunkCollection extends Collection
 {
     public function __construct(array $data = [])
     {
         parent::__construct(data: $data, caseSensitive: true);
-    }
-
-    public function implode(string|callable|null $value, ?string $glue = null): string
-    {
-        if (is_callable($value)) {
-            return implode($glue ?? '', $this->values($value));
-        }
-
-        $item = $this->first();
-
-        if (is_array($item) || is_object($item)) {
-            return implode($glue ?? '', $this->pluck($value));
-        }
-
-        return implode($value ?? '', $this->data);
-    }
-
-    public function join(?string $glue = null, ?Closure $as = null): string
-    {
-        return $this->implode($as, $glue);
-    }
-
-    public function collapse(): static
-    {
-        $results = [];
-
-        foreach ($this->data as $values) {
-            $values = $values instanceof Collection ? $values->data() : $values;
-
-            if (! is_array($values)) {
-                continue;
-            }
-
-            $results[] = $values;
-        }
-
-        return new static(array_merge([], ...$results));
     }
 
     public function map(callable $callback): static
@@ -65,12 +29,31 @@ class ChunkCollection extends Collection
         return $this;
     }
 
-    public function flatMap(callable $callback): static
+    public function whereKey(string|array $key): static
     {
-        return $this
-            ->clone()
-            ->map($callback)
-            ->collapse();
+        if (is_array($key)) {
+            $this->filter('id', 'in', $key);
+        }
+
+        return $this->filter('id', '=', $key);
+    }
+
+    public function whereExtension(string|array $extension): static
+    {
+        if (is_array($extension)) {
+            return $this->filter('extension', 'in', $extension);
+        }
+
+        return $this->filter('extension', '=', $extension);
+    }
+
+    public function whereType(ChunkType|array $type): static
+    {
+        if (is_array($type)) {
+            return $this->filter('type', 'in', $type);
+        }
+
+        return $this->filter('type', '=', $type);
     }
 
     public function toArray(?Closure $callback = null): array

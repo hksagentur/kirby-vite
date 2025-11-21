@@ -6,15 +6,14 @@ use Kirby\Cms\Html;
 use Kirby\Filesystem\F;
 use Kirby\Toolkit\Str;
 use Kirby\Http\Url;
+use Kirby\Toolkit\A;
 
+/** @see {@link https://vite.dev/guide/backend-integration Backend Integration} */
 class Generator
 {
-    protected array $dependencies = [];
-
-    protected ?string $crossorigin = null;
-
     public function __construct(
-        protected ?string $nonce = null
+        protected ?string $nonce = null,
+        protected ?string $crossorigin = null,
     ) {
     }
 
@@ -32,11 +31,11 @@ class Generator
         return $this;
     }
 
-    public function generateTagsForViteClient(array $entryPoints, string $host = 'localhost', int|string $port = 5173): array
+    public function generateTagsForViteClient(ChunkCollection $entryPoints, string $host = 'localhost', int|string $port = 5173): array
     {
         $elements = [];
 
-        foreach (array_merge(['@vite/client'], $entryPoints) as $file) {
+        foreach (array_merge(['@vite/client'], $entryPoints->pluck('id')) as $file) {
             $elements[] = match (F::extension($file)) {
                 'css' => Html::css(Url::scheme() . "://{$host}:{$port}/{$file}", [
                     'nonce' => $this->nonce,
@@ -51,65 +50,53 @@ class Generator
         return $elements;
     }
 
-    public function generateTagsForManifest(Manifest $manifest, array $entryPoints = []): array
+    public function generateTagsForEntryPoints(ChunkCollection $entryPoints): array
     {
-        $chunks = $manifest->entries();
+        $tags = [
+            'styles' => [],
+            'scripts' => [],
+            'modulepreloads' => [],
+        ];
 
-        if (! empty($entryPoints)) {
-            $chunks = $chunks->filter('id', 'in', $entryPoints);
+        foreach ($entryPoints as $entryPoint) {
+            foreach ($entryPoint as $chunk) {
+                if ($chunk->isEntry() && $chunk->type() === ChunkType::Style) {
+                    // 1. Generate a style tag for CSS entry points.
+                    $tags = A::merge($tags, [
+                        'styles' => [
+                            $this->generateStyleTagForChunk($chunk),
+                        ],
+                    ]);
+                } else if ($chunk->isEntry() && $chunk->type() === ChunkType::Script) {
+                    // 2: Generate style tags for each CSS file of the JavaScript module.
+                    // 3. Generate a script tag for the JavaScript module.
+                    $tags = A::merge($tags, [
+                        'styles' => [
+                            ...$entryPoint->styles()->map($this->generateStyleTagForChunk(...)),
+                        ],
+                        'scripts' => [
+                            $this->generateScriptTagForChunk($entryPoint),
+                        ],
+                    ]);
+                } else if ($chunk->type() === ChunkType::Script) {
+                    // 4. Generate style tags for all CSS files of the imported chunk.
+                    // 5. Generate a modulepreload tag for each imported chunk.
+                    $tags = A::merge($tags, [
+                        'styles' => [
+                            ...$chunk->styles()->map($this->generateStyleTagForChunk(...))
+                        ],
+                        'modulepreloads' => [
+                            $this->generateModulePreloadTagForChunk($chunk),
+                        ],
+                    ]);
+                }
+            }
         }
 
-        return [
-            ...$chunks->flatMap($this->generateTagsForChunk(...)),
-            ...$chunks->flatMap($this->generatePreloadTagsForChunk(...)),
-        ];
+        return array_reduce($tags, array_merge(...), []);
     }
 
-    public function generateTagsForChunk(Chunk $chunk): array
-    {
-        return match ($chunk->type()) {
-            ChunkType::Style => [
-                $this->generateStyleTagForChunk($chunk),
-            ],
-            default => [
-                ...$this->resolveDependencyTree($chunk)->flatMap(fn (Chunk $chunk) => [
-                    ...$chunk->styles()->flatMap($this->generateStyleTagForChunk(...)),
-                ]),
-                $this->generateScriptTagForChunk($chunk),
-            ],
-        };
-    }
-
-    public function generatePreloadTagsForChunk(Chunk $chunk): array
-    {
-        return match ($chunk->type()) {
-            ChunkType::Style => [
-                Html::tag('link', attr: [
-                    'rel' => 'preload',
-                    'as' => 'style',
-                    'href' => $chunk->url(),
-                    'integrity' => $chunk->get('integrity'),
-                    'nonce' => $this->nonce,
-                    'crossorigin' => $this->crossorigin,
-                ]),
-            ],
-            default => [
-                ...$this->resolveDependencyTree($chunk)->flatMap(fn (Chunk $chunk) => [
-                    ...$chunk->styles()->flatMap($this->generatePreloadTagsForChunk(...)),
-                    ...$chunk->imports()->flatMap($this->generatePreloadTagsForChunk(...)),
-                ]),
-                Html::tag('link', attr: [
-                    'rel' => 'modulepreload',
-                    'href' => $chunk->url(),
-                    'integrity' => $chunk->get('integrity'),
-                    'nonce' => $this->nonce,
-                    'crossorigin' => $this->crossorigin,
-                ]),
-            ],
-        };
-    }
-
-    protected function generateStyleTagForChunk(Chunk $chunk): string
+    public function generateStyleTagForChunk(Chunk $chunk): string
     {
         return Html::css($chunk->url(), [
             'integrity' => $chunk->get('integrity'),
@@ -117,7 +104,7 @@ class Generator
         ]);
     }
 
-    protected function generateScriptTagForChunk(Chunk $chunk): string
+    public function generateScriptTagForChunk(Chunk $chunk): string
     {
         return Html::js($chunk->url(), [
             'type' => 'module',
@@ -126,8 +113,46 @@ class Generator
         ]);
     }
 
-    protected function resolveDependencyTree(Chunk $entryPoint): ChunkCollection
+    public function generateModulePreloadTagForChunk(Chunk $chunk): string
     {
-        return $this->dependencies[$entryPoint->id()] ??= $entryPoint->dependencies();
+        return Html::tag('link', attr: [
+            'rel' => 'modulepreload',
+            'href' => $chunk->url(),
+            'integrity' => $chunk->get('integrity'),
+            'nonce' => $this->nonce,
+            'crossorigin' => $this->crossorigin,
+        ]);
+    }
+
+    public function generatePreloadTagForChunk(Chunk $chunk): string
+    {
+        return Html::tag('link', attr: [
+            'rel' => 'preload',
+            'href' => $chunk->url(),
+            'integrity' => $chunk->get('integrity'),
+            'nonce' => $this->nonce,
+            'crossorigin' => $this->crossorigin,
+            ...match ($chunk->extension()) {
+                'json' => [
+                    'as' => 'fetch',
+                    'crossorigin' => $this->crossorigin ?? 'anonymous',
+                ],
+                'woff', 'woff2' => [
+                    'as' => 'font',
+                    'type' => $chunk->mime(),
+                    'crossorigin' => $this->crossorigin ?? 'anonymous',
+                ],
+                'avif', 'gif', 'jpg', 'jpeg', 'png', 'svg', 'webp' => [
+                    'as' => 'image',
+                    'type' => $chunk->mime(),
+                ],
+                'css' => [
+                    'as' => 'style',
+                ],
+                default => [
+                    'as' => 'script',
+                ],
+            },
+        ]);
     }
 }

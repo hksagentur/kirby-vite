@@ -3,12 +3,15 @@
 namespace Hks\Vite;
 
 use Exception;
+use IteratorAggregate;
 use Kirby\Cms\App;
 use Kirby\Cms\Url;
 use Kirby\Filesystem\F;
+use Kirby\Filesystem\Mime;
 use Kirby\Toolkit\Str;
 
-class Chunk
+/** @implements IteratorAggregate<string, Chunk> */
+class Chunk implements IteratorAggregate
 {
     public function __construct(
         protected Manifest $manifest,
@@ -18,10 +21,6 @@ class Chunk
         if (empty($data['file'])) {
             throw new Exception('The chunk is missing a valid output path.');
         }
-
-        $this->manifest = $manifest;
-        $this->id = $id;
-        $this->data = $data;
     }
 
     public function is(ChunkType $type): bool
@@ -79,6 +78,11 @@ class Chunk
         return $this->manifest->base() . '/' . $this->file();
     }
 
+    public function mime(): ?string
+    {
+        return Mime::type($this->path());
+    }
+
     public function extension(): string
     {
         return F::extension($this->path());
@@ -123,44 +127,17 @@ class Chunk
 
     public function assets(): ChunkCollection
     {
-        return $this->findChunkBy('file', $this->get('assets', []));
+        return $this->findChunksBy('file', 'in', $this->get('assets', []));
     }
 
     public function styles(): ChunkCollection
     {
-        return $this->findChunkBy('file', $this->get('css', []));
+        return $this->findChunksBy('file', 'in', $this->get('css', []));
     }
 
     public function imports(): ChunkCollection
     {
-        return $this->findChunkBy('id', $this->get('imports', []));
-    }
-
-    public function dependencies(): ChunkCollection
-    {
-        $discoveredImports = [];
-
-        $stack = [
-            ...$this->imports(),
-        ];
-
-        while (! empty($stack)) {
-            $chunk = array_pop($stack);
-
-            if (isset($discoveredImports[$chunk->id()])) {
-                continue;
-            }
-
-            $discoveredImports[$chunk->id()] = $chunk;
-
-            foreach ($chunk->imports() as $import) {
-                if (! isset($discoveredImports[$import->id()])) {
-                    $stack[] = $import;
-                }
-            }
-        }
-
-        return new ChunkCollection($discoveredImports);
+        return $this->findChunksBy('id', 'in', $this->get('imports', []));
     }
 
     public function toArray(): array
@@ -178,6 +155,11 @@ class Chunk
         return $this->url();
     }
 
+    public function getIterator(): RecursiveChunkIterator
+    {
+        return new RecursiveChunkIterator($this);
+    }
+
     public function __toString(): string
     {
         return $this->toString();
@@ -188,8 +170,8 @@ class Chunk
         return $this->get($name);
     }
 
-    protected function findChunkBy(string $key, array $files): ChunkCollection
+    protected function findChunksBy(string $key, string $operator, mixed $value): ChunkCollection
     {
-        return $this->manifest->chunks()->filter($key, 'in', $files);
+        return $this->manifest->chunks()->filter($key, $operator, $value);
     }
 }

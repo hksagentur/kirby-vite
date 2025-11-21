@@ -12,18 +12,18 @@ class Vite
     protected ?Generator $generator = null;
     protected ?Server $server = null;
 
+    protected ?array $entryPoints = null;
     protected ?bool $hmr = null;
 
     protected ?string $manifest = '.vite/manifest.json';
     protected ?string $buildDirectory = 'assets/build';
 
-    public function __construct(
-        protected array $entryPoints = []
-    ) {
-        $this->withEntryPoints($entryPoints);
+    public function __construct(?array $entryPoints)
+    {
+        $this->entryPoints = $entryPoints;
     }
 
-    public static function make(array $entryPoints = []): static
+    public static function make(?array $entryPoints = null): static
     {
         return new static($entryPoints);
     }
@@ -91,6 +91,17 @@ class Vite
         return static::$manifests[$key];
     }
 
+    public function entryPoints(): ChunkCollection
+    {
+        $chunks = $this->manifest()->entries();
+
+        if ($this->entryPoints !== null) {
+            $chunks = $chunks->filter('id', 'in', $this->entryPoints);
+        }
+
+        return $chunks;
+    }
+
     public function generator(): Generator
     {
         return $this->generator ??= new Generator(
@@ -113,20 +124,19 @@ class Vite
 
     public function render(string $glue = ''): string
     {
+        $entryPoints = $this->entryPoints();
+
         if ($this->shouldUseManifest()) {
-            $elements = $this->generator()->generateTagsForManifest(
-                manifest: $this->manifest(),
-                entryPoints: $this->entryPoints
-            );
+            $tags = $this->generator()->generateTagsForEntryPoints($entryPoints);
         } else {
-            $elements = $this->generator()->generateTagsForViteClient(
-                entryPoints: $this->entryPoints,
+            $tags = $this->generator()->generateTagsForViteClient(
+                entryPoints: $entryPoints,
                 host: $this->option('client.host', 'localhost'),
                 port: $this->option('client.port', 5173)
             );
         }
 
-        return implode($glue, $elements);
+        return implode($glue, $tags);
     }
 
     public function toString(): string

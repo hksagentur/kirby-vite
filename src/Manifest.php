@@ -11,6 +11,7 @@ use Kirby\Data\Data;
 use Kirby\Filesystem\F;
 use Kirby\Toolkit\Str;
 
+/** @implements IteratorAggregate<string, Chunk> */
 class Manifest implements Countable, IteratorAggregate
 {
     protected ?ChunkCollection $chunks = null;
@@ -19,8 +20,6 @@ class Manifest implements Countable, IteratorAggregate
         protected string $file,
         protected string $buildDirectory
     ) {
-        $this->file = $file;
-        $this->buildDirectory = $buildDirectory;
     }
 
     public function isEmpty(): bool

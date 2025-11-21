@@ -4,9 +4,9 @@ namespace Hks\Vite;
 
 enum ChunkType
 {
-    case Style;
-    case Script;
     case Asset;
+    case Script;
+    case Style;
 
     public static function from(string $extension): static
     {
