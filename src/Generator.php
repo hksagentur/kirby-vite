@@ -67,7 +67,7 @@ class Generator
                             $this->generateStyleTagForChunk($chunk),
                         ],
                     ]);
-                } else if ($chunk->isEntry() && $chunk->type() === ChunkType::Script) {
+                } elseif ($chunk->isEntry() && $chunk->type() === ChunkType::Script) {
                     // 2: Generate style tags for each CSS file of the JavaScript module.
                     // 3. Generate a script tag for the JavaScript module.
                     $tags = A::merge($tags, [
@@ -78,7 +78,7 @@ class Generator
                             $this->generateScriptTagForChunk($entryPoint),
                         ],
                     ]);
-                } else if ($chunk->type() === ChunkType::Script) {
+                } elseif ($chunk->type() === ChunkType::Script) {
                     // 4. Generate style tags for all CSS files of the imported chunk.
                     // 5. Generate a modulepreload tag for each imported chunk.
                     $tags = A::merge($tags, [
