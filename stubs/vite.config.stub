@@ -10,7 +10,7 @@ const touch = (file) => {
   fs.closeSync(fs.openSync(path.resolve(__dirname, file), 'w'))
 };
 
-const remove = (file) => {
+const rm = (file) => {
   if (fs.existsSync(path.resolve(__dirname, file))) {
     fs.rmSync(path.resolve(__dirname, file));
   }
@@ -27,7 +27,7 @@ export default defineConfig(({ command, mode }) => {
     case 'serve':
       touch('site/cache/.vite-server');
 
-      process.on('exit', () => remove('site/cache/.vite-server'));
+      process.on('exit', () => rm('site/cache/.vite-server'));
       process.on('SIGINT', () => process.exit());
       process.on('SIGTERM', () => process.exit());
       process.on('SIGHUB', () => process.exit());
@@ -45,20 +45,29 @@ export default defineConfig(({ command, mode }) => {
     },
     build: {
       outDir: path.resolve(__dirname, 'assets/build'),
+      assetsDir: './',
       emptyOutDir: true,
       sourcemap: true,
       manifest: true,
+      modulePreload: false,
       rollupOptions: {
         input: [
           path.resolve(__dirname, 'site/assets/css/index.css'),
-          path.resolve(__dirname, 'site/assets/js/index.js')
+          path.resolve(__dirname, 'site/assets/js/index.js'),
         ],
         output: {
-          entryFileNames: '[name]-[hash].js',
-          chunkFileNames: '[name]-[hash].js',
-          assetFileNames: '[name]-[hash][extname]'
-        }
-      }
+          entryFileNames: '[name].[hash].js',
+          chunkFileNames: '[name].[hash].js',
+          assetFileNames: '[name].[hash][extname]',
+        },
+        manualChunks: (id) => {
+            if (id.includes('node_modules')) {
+              return 'vendor';
+            }
+
+            return null;
+          },
+      },
     },
     server: {
       host: VITE_HOST,
@@ -67,6 +76,6 @@ export default defineConfig(({ command, mode }) => {
       cors: {
         origin: /https?:\/\/([A-Za-z0-9\-\.]+)?(\.ddev\.site|\.localhost)(?::\d+)?$/,
       },
-    }
+    },
   };
 });

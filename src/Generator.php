@@ -8,7 +8,10 @@ use Kirby\Toolkit\Str;
 use Kirby\Http\Url;
 use Kirby\Toolkit\A;
 
-/** @see {@link https://vite.dev/guide/backend-integration Backend Integration} */
+/**
+ * @see {@link https://vite.dev/guide/backend-integration Backend Integration}
+ * @see {@link https://spiriitlabs.github.io/vite-plugin-svg-spritemap/guide/backend-integration.html Backend Integration}
+ */
 class Generator
 {
     public function __construct(
@@ -31,11 +34,11 @@ class Generator
         return $this;
     }
 
-    public function generateTagsForViteClient(ChunkCollection $entryPoints, string $host = 'localhost', int|string $port = 5173): array
+    public function generateTagsForViteClient(ChunkCollection $entryPoints,  array $plugins = [], string $host = 'localhost', int|string $port = 5173): array
     {
         $elements = [];
 
-        foreach (array_merge(['@vite/client'], $entryPoints->pluck('id')) as $file) {
+        foreach (array_merge(['@vite/client', ...$plugins], $entryPoints->pluck('id')) as $file) {
             $elements[] = match (F::extension($file)) {
                 'css' => Html::css(Url::scheme() . "://{$host}:{$port}/{$file}", [
                     'nonce' => $this->nonce,

@@ -11,6 +11,7 @@ Kirby::plugin('hksagentur/vite', [
         'client' => [
             'host' => getenv('VITE_CLIENT_HOST') ?: getenv('VITE_HOST'),
             'port' => getenv('VITE_CLIENT_PORT') ?: getenv('VITE_PORT'),
+            'plugins' => [],
         ],
     ],
 ]);

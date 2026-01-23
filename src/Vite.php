@@ -127,16 +127,14 @@ class Vite
         $entryPoints = $this->entryPoints();
 
         if ($this->shouldUseManifest()) {
-            $tags = $this->generator()->generateTagsForEntryPoints($entryPoints);
-        } else {
-            $tags = $this->generator()->generateTagsForViteClient(
-                entryPoints: $entryPoints,
-                host: $this->option('client.host', 'localhost'),
-                port: $this->option('client.port', 5173)
-            );
+            return implode($glue, $this->generator()->generateTagsForEntryPoints($entryPoints));
         }
 
-        return implode($glue, $tags);
+        $host = $this->option('client.host', 'localhost');
+        $port = $this->option('client.port', 5173);
+        $plugins = $this->option('client.plugins', []);
+
+        return implode($glue, $this->generator()->generateTagsForViteClient($entryPoints, $plugins, $host, $port));
     }
 
     public function toString(): string
