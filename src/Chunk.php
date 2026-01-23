@@ -140,6 +140,11 @@ class Chunk implements IteratorAggregate
         return $this->findChunksBy('id', 'in', $this->get('imports', []));
     }
 
+    public function content(): string|false
+    {
+        return F::read($this->path());
+    }
+
     public function toArray(): array
     {
         return $this->data;

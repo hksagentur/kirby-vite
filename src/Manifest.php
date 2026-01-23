@@ -103,6 +103,26 @@ class Manifest implements Countable, IteratorAggregate
         return $this->entries()->findBy('id', Str::ltrim($id, '/'));
     }
 
+    public function assets(): ChunkCollection
+    {
+        return $this->chunks()->filter(fn (Chunk $chunk) => $chunk->isAsset());
+    }
+
+    public function asset(string $id): ?Chunk
+    {
+        return $this->assets()->findBy('id', Str::ltrim($id, '/'));
+    }
+
+    public function styles(): ChunkCollection
+    {
+        return $this->chunks()->filter(fn (Chunk $chunk) => $chunk->isStyle());
+    }
+
+    public function style(string $id): ?Chunk
+    {
+        return $this->styles()->findBy('id', Str::ltrim($id, '/'));
+    }
+
     public function toArray(): array
     {
         return $this->chunks()->toArray();
