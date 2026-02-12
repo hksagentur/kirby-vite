@@ -20,8 +20,8 @@
     "getkirby/composer-installer": "^1.2"
   },
   "require-dev": {
-    "getkirby/cms": "^5.1",
-    "laravel/pint": "^1.25"
+    "getkirby/cms": "^5.3",
+    "laravel/pint": "^1.27"
   },
   "config": {
     "optimize-autoloader": true,
