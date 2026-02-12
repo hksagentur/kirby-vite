@@ -9,9 +9,9 @@ use WeakMap;
 /** @implements IteratorAggregate<string, Chunk> */
 class RecursiveChunkIterator implements IteratorAggregate
 {
-    public const int LEAVES_ONLY = 0;
-    public const int SELF_FIRST = 1;
-    public const int CHILD_FIRST = 2;
+    public const LEAVES_ONLY = 0;
+    public const SELF_FIRST = 1;
+    public const CHILD_FIRST = 2;
 
     public function __construct(
         protected Chunk $chunk,
