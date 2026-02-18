@@ -34,7 +34,7 @@ class Generator
         return $this;
     }
 
-    public function generateTagsForViteClient(ChunkCollection $entryPoints,  array $plugins = [], string $host = 'localhost', int|string $port = 5173): array
+    public function generateTagsForViteClient(ChunkCollection $entryPoints, array $plugins = [], string $host = 'localhost', int|string $port = 5173): array
     {
         $elements = [];
 
