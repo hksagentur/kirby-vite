@@ -16,6 +16,8 @@ class Vite
     protected ?bool $hmr = null;
 
     protected ?string $manifest = '.vite/manifest.json';
+
+    protected ?string $templateDirectory = 'site/assets';
     protected ?string $buildDirectory = 'assets/build';
 
     public function __construct(?array $entryPoints)
@@ -45,6 +47,13 @@ class Vite
     public function useManifestFilename(?string $manifest = 'manifest.json'): static
     {
         $this->manifest = $manifest;
+
+        return $this;
+    }
+
+    public function useTemplateDirectory(string $path): static
+    {
+        $this->templateDirectory = Str::trim($path, '/');
 
         return $this;
     }
@@ -95,11 +104,11 @@ class Vite
     {
         $chunks = $this->manifest()->entries();
 
-        if ($this->entryPoints !== null) {
-            $chunks = $chunks->filter('id', 'in', $this->entryPoints);
+        if ($this->entryPoints === null) {
+            return $chunks;
         }
 
-        return $chunks;
+        return $chunks->filter('id', 'in', $this->expandEntryPoints());
     }
 
     public function generator(): Generator
@@ -150,5 +159,23 @@ class Vite
     public function __call($method, array $parameters = []): mixed
     {
         return $this->manifest()->{$method}(...$parameters);
+    }
+
+    protected function expandEntryPoints(): array
+    {
+        $entryPoints = $this->entryPoints ?? [];
+
+        if (! in_array('@auto', $entryPoints)) {
+            return $entryPoints;
+        }
+
+        $template = App::instance()->site()->page()->template();
+
+        $entryPoints = array_diff($entryPoints, ['@auto']);
+
+        $entryPoints[] = "{$this->templateDirectory}/css/templates/{$template}.css";
+        $entryPoints[] = "{$this->templateDirectory}/js/templates/{$template}.js";
+
+        return $entryPoints;
     }
 }
