@@ -21,7 +21,7 @@ class Server
 
     public function host(): string
     {
-        return $this->host();
+        return $this->host;
     }
 
     public function port(): int|string
