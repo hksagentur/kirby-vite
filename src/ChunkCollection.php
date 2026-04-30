@@ -32,10 +32,10 @@ class ChunkCollection extends Collection
     public function whereKey(string|array $key): static
     {
         if (is_array($key)) {
-            $this->filter('id', 'in', $key);
+            return $this->filter('id', 'in', $key);
         }
 
-        return $this->filter('id', '=', $key);
+        return $this->filter('id', '==', $key);
     }
 
     public function whereExtension(string|array $extension): static
@@ -44,7 +44,7 @@ class ChunkCollection extends Collection
             return $this->filter('extension', 'in', $extension);
         }
 
-        return $this->filter('extension', '=', $extension);
+        return $this->filter('extension', '==', $extension);
     }
 
     public function whereType(ChunkType|array $type): static
@@ -53,7 +53,7 @@ class ChunkCollection extends Collection
             return $this->filter('type', 'in', $type);
         }
 
-        return $this->filter('type', '=', $type);
+        return $this->filter('type', '==', $type);
     }
 
     public function toArray(?Closure $callback = null): array

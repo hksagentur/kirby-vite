@@ -127,6 +127,11 @@ class Generator
         ]);
     }
 
+    public function generatePreloadTagsForChunks(ChunkCollection $chunks): array
+    {
+        return $chunks->toArray($this->generatePreloadTagForChunk(...));
+    }
+
     public function generatePreloadTagForChunk(Chunk $chunk): string
     {
         return Html::tag('link', attr: [

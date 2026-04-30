@@ -4,8 +4,9 @@ namespace Hks\Vite;
 
 use Kirby\Cms\App;
 use Kirby\Toolkit\Str;
+use Stringable;
 
-class Vite
+class Vite implements Stringable
 {
     protected static array $manifests = [];
 
@@ -13,6 +14,8 @@ class Vite
     protected ?Server $server = null;
 
     protected ?array $entryPoints = null;
+    protected ?array $preloadChunks = null;
+
     protected ?bool $hmr = null;
 
     protected ?string $manifest = '.vite/manifest.json';
@@ -86,6 +89,16 @@ class Vite
         return $this;
     }
 
+    public function withPreloadTags(array|string $assets): static
+    {
+        $this->preloadChunks = [
+            ...(array) $this->preloadChunks,
+            ...(array) $assets,
+        ];
+
+        return $this;
+    }
+
     public function manifest(): Manifest
     {
         $key = $this->buildDirectory . '/' . $this->manifest;
@@ -108,7 +121,16 @@ class Vite
             return $chunks;
         }
 
-        return $chunks->filter('id', 'in', $this->expandEntryPoints());
+        return $chunks->whereKey($this->expandEntryPoints());
+    }
+
+    public function preloadedChunks(): ChunkCollection
+    {
+        if ($this->preloadChunks === null) {
+            return new ChunkCollection();
+        }
+
+        return $this->manifest()->chunks()->whereKey($this->preloadChunks);
     }
 
     public function generator(): Generator
@@ -134,9 +156,13 @@ class Vite
     public function render(string $glue = ''): string
     {
         $entryPoints = $this->entryPoints();
+        $preloadedChunks = $this->preloadedChunks();
 
         if ($this->shouldUseManifest()) {
-            return implode($glue, $this->generator()->generateTagsForEntryPoints($entryPoints));
+            return implode($glue, [
+                ...$this->generator()->generatePreloadTagsForChunks($preloadedChunks),
+                ...$this->generator()->generateTagsForEntryPoints($entryPoints),
+            ]);
         }
 
         $host = $this->option('client.host', 'localhost');
@@ -156,7 +182,7 @@ class Vite
         return $this->render();
     }
 
-    public function __call($method, array $parameters = []): mixed
+    public function __call(string $method, array $parameters = []): mixed
     {
         return $this->manifest()->{$method}(...$parameters);
     }
